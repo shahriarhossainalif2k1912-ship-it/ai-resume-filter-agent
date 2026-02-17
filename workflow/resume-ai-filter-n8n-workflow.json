@@ -1,0 +1,245 @@
+{
+  "name": "resume-ai-filter-n8n-workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "upload_resume",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "c8432817-ce18-40be-a253-ff108d596c24",
+      "name": "Webhook",
+      "webhookId": "37de3c26-2321-4a8a-90c7-f2d3e43ed8be"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an AI resume evaluator.\n\nJob Description:\n{{$json.body.job_description}}\n\nResume:\n{{$json.body.resume_text}}\n\nCandidate Name:\n{{$json.body.name}}\n\nCandidate Email:\n{{$json.body.email}}\n\nScore this candidate from 0-100.\n\nReturn ONLY valid JSON in this exact format:\n\n{\n  \"name\": \"string\",\n  \"email\": \"string\",\n  \"score\": number,\n  \"fit_level\": \"High/Medium/Low\",\n  \"strengths\": \"comma separated string\",\n  \"weaknesses\": \"comma separated string\"\n}\n",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        288,
+        0
+      ],
+      "id": "a1c50da1-3bd0-4659-8088-f8f6047258c6",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-20b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        192,
+        208
+      ],
+      "id": "17227102-1508-4754-a13f-d7b312b815a9",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "qEtuKzQgNkap0m9m",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "192wDHT8T704NkmeF_4Cc2ETzpg6MtSzhz7W04mcZ4YU",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Sheet1",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Name ": "={{ $json.output.name }}",
+            "Email": "={{ $json.output.email }}",
+            "Score": "={{ $json.output.score }}",
+            "Fit Level": "={{ $json.output.fit_level }}",
+            "Strengths": "={{ $json.output.strengths }}",
+            "Weaknesses": "={{ $json.output.weaknesses }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Name ",
+              "displayName": "Name ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Score",
+              "displayName": "Score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Fit Level",
+              "displayName": "Fit Level",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Strengths",
+              "displayName": "Strengths",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Weaknesses",
+              "displayName": "Weaknesses",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        912,
+        0
+      ],
+      "id": "03fca3f4-1ce7-4789-8636-29f854ed06ba",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "NhmiIqkNcxA1Wh2a",
+          "name": "Google Sheets account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "fd9d81c1-3b0a-4ba2-8250-12f840d6f72a",
+              "name": "output",
+              "value": "={{ $json.output }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        640,
+        0
+      ],
+      "id": "84662f83-f5a7-4c8e-83be-dd8215c44ea9",
+      "name": "Parsed Data"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Parsed Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parsed Data": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "d409d1a1-6e21-4668-9b88-f2ed0fcdade2",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f6c92064d5fe6cbf6e48ce3dd6367fe480e732e17392ce78d74df9a289a2870f"
+  },
+  "id": "7ZhPPd5C7qwwHLfBrAbWm",
+  "tags": []
+}
